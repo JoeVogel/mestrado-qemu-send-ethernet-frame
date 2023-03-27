@@ -18,66 +18,91 @@ union ethframe
   unsigned char    buffer[ETH_FRAME_LEN];
 };
 
-int main(int argc, char **argv) {
-  char *iface = "eth0";
-  unsigned char dest[ETH_ALEN] = { 0x52, 0x54, 0x00, 0x12, 0x034, 0x58 };
-  unsigned short proto = 0x1234;
-  unsigned char *data = "testing - industrial networks";
-  unsigned short data_len = strlen(data);
+int main(int argc, char *argv[]) {
 
-  int s;
-  if ((s = socket(AF_PACKET, SOCK_RAW, htons(proto))) < 0) {
-    printf("Error: could not open socket\n");
-    return -1;
-  }
+	char *iface = "eth0";
+	int destiny = atoi(argv[1]);
 
-  struct ifreq buffer;
-  int ifindex;
-  memset(&buffer, 0x00, sizeof(buffer));
-  strncpy(buffer.ifr_name, iface, IFNAMSIZ);
-  if (ioctl(s, SIOCGIFINDEX, &buffer) < 0) {
-    printf("Error: could not get interface index\n");
-    close(s);
-    return -1;
-  }
-  ifindex = buffer.ifr_ifindex;
+	unsigned char dest[ETH_ALEN] = {};
+	dest[0] = 0x52;
+	dest[1] = 0x54;
+	dest[2] = 0x00;
+	dest[3] = 0x12;
+	dest[4] = 0x34;
+	
+	if (destiny == 56) {
+		dest[5] = 0x56;
+	} else if (destiny == 57) {
+		dest[5] = 0x57;
+	} else if (destiny == 58) {
+		dest[5] = 0x58;
+	} else {
+		dest[0] = 0xff;
+		dest[1] = 0xff;
+		dest[2] = 0xff;
+		dest[3] = 0xff;
+		dest[4] = 0xff;
+		dest[5] = 0xff;
+	}
 
-  unsigned char source[ETH_ALEN];
-  if (ioctl(s, SIOCGIFHWADDR, &buffer) < 0) {
-    printf("Error: could not get interface address\n");
-    close(s);
-    return -1;
-  }
-  memcpy((void*)source, (void*)(buffer.ifr_hwaddr.sa_data),
-         ETH_ALEN);
+	// unsigned char dest[ETH_ALEN] = { 0x52, 0x54, 0x00, 0x12, 0x034, 0x58 };
+	unsigned short proto = 0x1234;
+	unsigned char *data = "testing - industrial networks";
+	unsigned short data_len = strlen(data);
 
-  union ethframe frame;
-  memcpy(frame.field.header.h_dest, dest, ETH_ALEN);
-  memcpy(frame.field.header.h_source, source, ETH_ALEN);
-  frame.field.header.h_proto = htons(proto);
-  memcpy(frame.field.data, data, data_len);
+	int s;
+	if ((s = socket(AF_PACKET, SOCK_RAW, htons(proto))) < 0) {
+		printf("Error: could not open socket\n");
+		return -1;
+	}
 
-  unsigned int frame_len = data_len + ETH_HLEN;
+	struct ifreq buffer;
+	int ifindex;
+	memset(&buffer, 0x00, sizeof(buffer));
+	strncpy(buffer.ifr_name, iface, IFNAMSIZ);
+	if (ioctl(s, SIOCGIFINDEX, &buffer) < 0) {
+		printf("Error: could not get interface index\n");
+		close(s);
+		return -1;
+	}
+	ifindex = buffer.ifr_ifindex;
 
-  struct sockaddr_ll saddrll;
-  memset((void*)&saddrll, 0, sizeof(saddrll));
-  saddrll.sll_family = PF_PACKET;
-  saddrll.sll_ifindex = ifindex;
-  saddrll.sll_halen = ETH_ALEN;
-  memcpy((void*)(saddrll.sll_addr), (void*)dest, ETH_ALEN);
+	unsigned char source[ETH_ALEN];
+	if (ioctl(s, SIOCGIFHWADDR, &buffer) < 0) {
+		printf("Error: could not get interface address\n");
+		close(s);
+		return -1;
+	}
+	memcpy((void*)source, (void*)(buffer.ifr_hwaddr.sa_data),
+			ETH_ALEN);
 
-  if (sendto(s, frame.buffer, frame_len, 0,
-             (struct sockaddr*)&saddrll, sizeof(saddrll)) > 0) {
-    printf("Success!\n");
-  }
-  else {
-    int err = errno;
-    fprintf(stderr, "*** ERROR - bind() failed:%d(%s)\n"
-      , err, strerror(err)
-      );
-  }
+	union ethframe frame;
+	memcpy(frame.field.header.h_dest, dest, ETH_ALEN);
+	memcpy(frame.field.header.h_source, source, ETH_ALEN);
+	frame.field.header.h_proto = htons(proto);
+	memcpy(frame.field.data, data, data_len);
 
-  close(s);
+	unsigned int frame_len = data_len + ETH_HLEN;
 
-  return 0;
+	struct sockaddr_ll saddrll;
+	memset((void*)&saddrll, 0, sizeof(saddrll));
+	saddrll.sll_family = PF_PACKET;
+	saddrll.sll_ifindex = ifindex;
+	saddrll.sll_halen = ETH_ALEN;
+	memcpy((void*)(saddrll.sll_addr), (void*)dest, ETH_ALEN);
+
+	if (sendto(s, frame.buffer, frame_len, 0,
+				(struct sockaddr*)&saddrll, sizeof(saddrll)) > 0) {
+		printf("Success!\n");
+	}
+	else {
+		int err = errno;
+		fprintf(stderr, "*** ERROR - bind() failed:%d(%s)\n"
+		, err, strerror(err)
+		);
+	}
+
+	close(s);
+
+	return 0;
 }
