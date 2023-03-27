@@ -60,3 +60,7 @@ E via *TCPDump* podemos ver que o pacote foi enviado:
 	0x0000:  7465 7374 696e 6720 2d20 696e 6475 7374  testing.-.indust
 	0x0010:  7269 616c 206e 6574 776f 726b 7300 0000  rial.networks...
 	0x0020:  0000 0000 0000 0000 0000 0000 0000       ..............
+
+## Referência
+
+http://hacked10bits.blogspot.com/2011/12/sending-raw-ethernet-frames-in-6-easy.html
