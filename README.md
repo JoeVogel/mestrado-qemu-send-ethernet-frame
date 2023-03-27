@@ -8,7 +8,7 @@ Este repositório tem como objetivo apenas demonstrar o que é necessário para 
 
 O passo-a-passo para criação e execução das máquinas virtuais no QEMU pode ser encontrada no link a seguir:
 
-[a link](https://github.com/JoeVogel/mestrado-qemu-kernel-busybox)
+[QEMU com Kernel e Busybox](https://github.com/JoeVogel/mestrado-qemu-kernel-busybox)
 
 ## sender.c
 
@@ -34,7 +34,7 @@ Para tal, podemos usar o GCC no host com o argumento **-static** que possibilita
 
 Isso irá gerar o arquivo **sender**, este deverá ser adicionado à pasta _install da BusyBox 
 
-Com este arquivo no lugar certo, agora precisamos gerar novamente a imagem da BusyBox. Para tal usamos o utilitário disponibilizado pelo Kernel que compilamos ([ver Premissa](##-premissa))
+Com este arquivo no lugar certo, agora precisamos gerar novamente a imagem da BusyBox. Para tal usamos o utilitário disponibilizado pelo Kernel que compilamos ([ver Premissa](#premissa))
 
 	cd ./linux-5.15.57/
 	./usr/gen_initramfs.sh -o ../initramfs.img ../busybox-1.36.0/_install ../cpio_list
